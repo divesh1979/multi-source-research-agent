@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables
+.env
+
+# Testing & Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local snapshots directory
+snapshots/*.json
+snapshots/*.html
+!snapshots/.gitkeep
+
+# IDE & System
+.DS_Store
+.vscode/
+.idea/
