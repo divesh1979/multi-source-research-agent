@@ -1,0 +1,8 @@
+# Full requirements for Local CLI, Streamlit, and Pytest
+-r requirements.txt
+streamlit>=1.30.0
+rich>=13.0.0
+pytest>=8.0.0
+serpapi>=0.1.5
+tavily-python>=0.3.0
+praw>=7.7.0
