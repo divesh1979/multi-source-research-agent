@@ -1,110 +1,100 @@
-# Advanced AI Web Agent for Multi-Source Research
+# Multi-Source AI Research Agent
 
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-orange.svg)](https://github.com/langchain-ai/langgraph)
-[![LangChain](https://img.shields.io/badge/LangChain-0.2+-green.svg)](https://www.langchain.com/)
-[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2.0-red.svg)](https://docs.pydantic.dev/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-ff4b4b.svg)](https://streamlit.io/)
-
-> An enterprise-grade, multi-source AI research agent built using **LangGraph**, **LangChain**, **GPT-4o**, **Pydantic v2**, **BrightData Web Unlocker API**, **Google Search**, and **Reddit API**.
-> The agent executes parallel research workflows across web search, social discussions, and deep web page scraping, synthesizing structured empirical research reports with verified source citations.
+A parallel AI research agent built using **LangGraph**, **LangChain**, **GPT-4o**, and **Pydantic**. It queries Google Search, Reddit discussions, and scrapes deep web pages concurrently via BrightData API, then synthesizes the data into structured reports with verified source citations.
 
 ---
 
-## 🎯 Alignment with Profile Specification
+## Key Features
 
-- **LangGraph Parallel Workflows**: Developed a `StateGraph` architecture featuring parallel fan-out nodes (`google_node`, `reddit_node`, `scraping_node`) and fan-in aggregation (`aggregate_node` -> `synthesis_node`).
-- **GPT-4o & Pydantic Analysis Pipeline**: Implemented an end-to-end analysis pipeline using GPT-4o with `with_structured_output`, enforcing strong schema validation via Pydantic v2 data models (`ResearchReport`, `SourceCitation`, `KeyFinding`, `SentimentOverview`).
-- **LangChain Integration**: Built modular `ChatPromptTemplate` structures for dynamic query decomposition and multi-source cross-platform synthesis.
-- **BrightData Scraping & Snapshot Management**: Engineered real-time web page scraping using BrightData API combined with a local `SnapshotManager` for HTML-to-Markdown conversion, timestamping, and snapshot caching.
+- **LangGraph Parallel Workflow**: Uses a state graph to fan-out queries across multiple sources concurrently (`google_node`, `reddit_node`, `scraping_node`) before merging them in an aggregation node.
+- **Pydantic Structured Output**: Enforces strict typing (`ResearchReport`, `SourceCitation`, `KeyFinding`, `SentimentOverview`) via GPT-4o `with_structured_output` to prevent malformed responses.
+- **BrightData Scraping & Local Snapshots**: Real-time web scraping with HTML-to-Markdown conversion and local timestamped caching under `snapshots/`.
+- **Dual Interfaces**: 
+  - **CLI (`main.py`)**: Terminal UI with progress spinners, formatted markdown, and summary tables.
+  - **Streamlit Web App (`app.py`)**: Interactive web dashboard to run queries, view live progress, inspect snapshots, and export JSON/Markdown.
+- **Offline / Fallback Support**: Runs with fallback search and scraping engines if API keys are not provided.
 
 ---
 
-## 🏗️ System Architecture
+## Architecture Overview
 
-```mermaid
-flowchart TD
-    A[User Research Query] --> B[Planner Node - Query Decomposition]
-    B --> C{LangGraph Parallel Fan-Out}
-    C -->|Branch 1| D[Google Search Node]
-    C -->|Branch 2| E[Reddit Discussion Node]
-    C -->|Branch 3| F[BrightData Scraping & Snapshot Node]
-    D --> G[Data Aggregation & Deduplication Node]
-    E --> G
-    F --> G
-    G --> H[GPT-4o Synthesis Pipeline]
-    H --> I[Pydantic v2 Output Validation]
-    I --> J[Rich CLI & Streamlit Web UI Reports]
+```
+                          ┌──► Google Search Node ──────┐
+                          │                             │
+[User Query] ──► [Planner] ├──► Reddit Node ─────────────┼──► [Aggregator] ──► [GPT-4o Synthesis] ──► [Structured Report]
+                          │                             │
+                          └──► BrightData Scraper Node ─┘
 ```
 
 ---
 
-## 🚀 Quick Start & Installation
+## Setup & Installation
 
-### 1. Clone & Navigate to Project Workspace
+### 1. Clone the repository
 ```bash
-cd /Users/diveshogha/.gemini/antigravity/scratch/multi-source-research-agent
+git clone https://github.com/divesh1979/multi-source-research-agent.git
+cd multi-source-research-agent
 ```
 
-### 2. Install Dependencies
+### 2. Create virtual environment & install requirements
 ```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Environment Configuration
-Copy `.env.example` to `.env` and fill in your API keys (optional — automatic mock engines run out-of-the-box if keys are omitted):
+### 3. Configure environment variables
+Copy `.env.example` to `.env` and set your API keys:
 ```bash
 cp .env.example .env
 ```
+*(If left empty, the project automatically uses built-in mock/fallback engines for testing).*
 
 ---
 
-## 💻 Running the Application
+## How to Run
 
-### Option A: Interactive Rich CLI
-Run multi-source research directly from your terminal with real-time execution spinners and formatted tables:
+### Command Line Interface (CLI)
 ```bash
-python main.py --query "Compare DeepSeek-R1 and GPT-4o for tool use and agentic coding"
+python main.py --query "DeepSeek-R1 vs GPT-4o architecture comparison for agentic coding"
 ```
 
-### Option B: Streamlit Web Dashboard
-Launch the interactive web interface:
+### Streamlit Web Dashboard
 ```bash
 streamlit run app.py
 ```
 
 ---
 
-## 🧪 Running Automated Tests
-Run unit and integration tests using Pytest:
+## Testing
+Run unit and integration tests with Pytest:
 ```bash
 pytest tests/ -v
 ```
 
 ---
 
-## 📁 Repository Structure
+## Project Structure
 
 ```
 multi-source-research-agent/
 ├── agent/
-│   ├── graph.py             # Compiled LangGraph StateGraph topology
-│   └── nodes.py             # Execution logic for parallel and synthesis nodes
+│   ├── graph.py             # LangGraph StateGraph pipeline configuration
+│   └── nodes.py             # Parallel search and LLM synthesis nodes
 ├── schemas/
-│   ├── research_state.py    # AgentState TypedDict for graph state propagation
-│   └── output_models.py     # Pydantic v2 structured output schemas
+│   ├── research_state.py    # AgentState TypedDict for state propagation
+│   └── output_models.py     # Pydantic v2 schemas for report output
 ├── tools/
-│   ├── google_search.py     # Google Search (SerpAPI / Tavily / DDG fallback)
-│   ├── reddit_search.py     # Reddit API (PRAW / JSON endpoints / mock fallback)
-│   └── brightdata_scraper.py # BrightData API + SnapshotManager engine
+│   ├── google_search.py     # Google Search tool (SerpAPI / Tavily / DDG)
+│   ├── reddit_search.py     # Reddit discussion scraper (PRAW / JSON API)
+│   └── brightdata_scraper.py # BrightData REST scraper + SnapshotManager
 ├── prompts/
-│   └── templates.py         # Modular LangChain ChatPromptTemplates
-├── config.py                # Environment and settings configuration
-├── main.py                  # Rich CLI terminal entrypoint
-├── app.py                   # Streamlit Web UI dashboard
+│   └── templates.py         # LangChain ChatPromptTemplate definitions
+├── config.py                # Environment settings & config
+├── main.py                  # CLI application entrypoint
+├── app.py                   # Streamlit dashboard entrypoint
 ├── tests/
-│   └── test_agent.py        # Automated test suite
-├── requirements.txt         # Pinned project dependencies
-├── .env.example             # Environment variables template
+│   └── test_agent.py        # Pytest test suite
+├── requirements.txt         # Dependencies
 └── README.md                # Project documentation
 ```
