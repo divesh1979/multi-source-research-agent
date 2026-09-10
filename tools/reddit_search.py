@@ -47,7 +47,7 @@ def execute_reddit_search(query: str, max_posts: int = None) -> List[Dict[str, A
         encoded_query = httpx.URL(query).raw_path.decode('utf-8')
         url = f"https://www.reddit.com/search.json?q={query}&limit={limit}&sort=relevance"
         headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) MultiSourceAgent/1.0"}
-        response = httpx.get(url, headers=headers, timeout=8.0)
+        response = httpx.get(url, headers=headers, timeout=3.0)
         if response.status_code == 200:
             data = response.json()
             posts = data.get("data", {}).get("children", [])

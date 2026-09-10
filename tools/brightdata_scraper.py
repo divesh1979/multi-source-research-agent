@@ -20,7 +20,10 @@ class SnapshotManager:
     """
     def __init__(self, snapshot_dir: Optional[Path] = None):
         self.snapshot_dir = snapshot_dir or settings.snapshot_dir
-        self.snapshot_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.snapshot_dir.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            logger.warning(f"Could not create snapshot directory {self.snapshot_dir}: {e}")
 
     def _generate_snapshot_id(self, url: str) -> str:
         url_hash = hashlib.md5(url.encode('utf-8')).hexdigest()[:8]
@@ -67,10 +70,13 @@ class SnapshotManager:
             "filepath": str(snapshot_filepath.absolute())
         }
         
-        with open(snapshot_filepath, "w", encoding="utf-8") as f:
-            json.dump(metadata, f, indent=2)
+        try:
+            with open(snapshot_filepath, "w", encoding="utf-8") as f:
+                json.dump(metadata, f, indent=2)
+            logger.info(f"Snapshot saved: {snapshot_id} for URL: {url}")
+        except Exception as e:
+            logger.warning(f"Could not save snapshot file for {url}: {e}")
             
-        logger.info(f"Snapshot saved: {snapshot_id} for URL: {url}")
         return metadata
 
 
@@ -95,7 +101,7 @@ class BrightDataScraper:
                     "Content-Type": "application/json"
                 }
                 payload = {"zone": self.zone, "url": url, "format": "raw"}
-                response = httpx.post(brightdata_url, headers=headers, json=payload, timeout=15.0)
+                response = httpx.post(brightdata_url, headers=headers, json=payload, timeout=5.0)
                 if response.status_code in [200, 202]:
                     html_content = response.text
                     markdown = self.snapshot_manager.html_to_clean_markdown(html_content, url)
@@ -108,7 +114,7 @@ class BrightDataScraper:
         # 2. Direct HTTP scraper fallback
         try:
             headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) WebScraper/1.0"}
-            response = httpx.get(url, headers=headers, timeout=10.0, follow_redirects=True)
+            response = httpx.get(url, headers=headers, timeout=5.0, follow_redirects=True)
             if response.status_code == 200:
                 html_content = response.text
                 markdown = self.snapshot_manager.html_to_clean_markdown(html_content, url)

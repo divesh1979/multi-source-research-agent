@@ -17,7 +17,7 @@ def execute_google_search(query: str, max_results: int = None) -> List[Dict[str,
     if settings.serpapi_api_key:
         try:
             url = f"https://serpapi.com/search?q={query}&api_key={settings.serpapi_api_key}&engine=google&num={limit}"
-            response = httpx.get(url, timeout=10.0)
+            response = httpx.get(url, timeout=3.0)
             if response.status_code == 200:
                 data = response.json()
                 for item in data.get("organic_results", [])[:limit]:
@@ -38,7 +38,7 @@ def execute_google_search(query: str, max_results: int = None) -> List[Dict[str,
         try:
             url = "https://api.tavily.com/search"
             payload = {"api_key": settings.tavily_api_key, "query": query, "max_results": limit}
-            response = httpx.post(url, json=payload, timeout=10.0)
+            response = httpx.post(url, json=payload, timeout=3.0)
             if response.status_code == 200:
                 data = response.json()
                 for item in data.get("results", []):
@@ -58,7 +58,7 @@ def execute_google_search(query: str, max_results: int = None) -> List[Dict[str,
     try:
         ddg_url = f"https://html.duckduckgo.com/html/?q={query}"
         headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
-        response = httpx.get(ddg_url, headers=headers, timeout=8.0)
+        response = httpx.get(ddg_url, headers=headers, timeout=3.0)
         if response.status_code == 200:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(response.text, "html.parser")

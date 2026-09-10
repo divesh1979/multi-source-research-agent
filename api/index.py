@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+import traceback
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from agent.graph import agent_app
 
@@ -15,13 +16,20 @@ class ResearchRequest(BaseModel):
 def read_root():
     return {"message": "Multi-Source AI Research Agent API is running on Vercel!"}
 
+@app.get("/api/research")
+def run_research_get(query: str = Query("DeepSeek-R1 vs GPT-4o architecture comparison")):
+    return execute_research(query)
+
 @app.post("/api/research")
-def run_research(request: ResearchRequest):
-    if not request.query:
+def run_research_post(request: ResearchRequest):
+    return execute_research(request.query)
+
+def execute_research(query: str):
+    if not query:
         raise HTTPException(status_code=400, detail="Query prompt cannot be empty.")
         
     initial_state = {
-        "original_query": request.query,
+        "original_query": query,
         "expanded_queries": [],
         "google_results": [],
         "reddit_results": [],
@@ -39,4 +47,5 @@ def run_research(request: ResearchRequest):
             raise HTTPException(status_code=500, detail="Failed to synthesize research report.")
         return report
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_details = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Execution error: {str(e)} | Stacktrace: {error_details[:500]}")
